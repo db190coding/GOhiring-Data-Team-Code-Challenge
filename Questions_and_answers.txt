@@ -1,0 +1,72 @@
+Question Answers:
+
+Be prepared to discuss:
+How the data was loaded (see notebook).
+Data quality issues found and how they were discovered (see notebook).
+How you found answers to the questions below (and any caveats to the answers). (see notebook)
+
+1. What location has the most jobs that are either posted or expired?
+
+Tarth has 15 jobs that are either posted or expired.
+
+
+2. What month had the most cancelled jobs?
+
+Month 6 (june) hase 7 cancelled jobs
+
+3. Which company has the highest ratio of posted jobs to employee count?
+
+Company Best Corp. with a ratio of 0.017467
+
+4. Develop the SQL to define a dimensional model schema for this data. Document (or be ready to discuss) any design decisions that you make.
+
+-- Locations Dimension Table
+CREATE TABLE locations (
+    zip_code VARCHAR2(10) PRIMARY KEY,
+    location VARCHAR2(100) NOT NULL
+);
+
+-- Companies Dimension Table
+CREATE TABLE companies (
+    company_id NUMBER PRIMARY KEY,
+    company_name VARCHAR2(100) NOT NULL,
+    establishment_date DATE,
+    number_of_employees NUMBER
+);
+
+-- Jobs Fact Table
+CREATE TABLE jobs (
+    id NUMBER PRIMARY KEY,
+    posted_at TIMESTAMP,
+    state VARCHAR2(50),
+    zip_code VARCHAR2(10),
+    price NUMBER(10, 2), -- or use DECIMAL if preferred
+    company_id NUMBER,
+    FOREIGN KEY (zip_code) REFERENCES locations(zip_code),
+    FOREIGN KEY (company_id) REFERENCES companies(company_id)
+);
+
+5. Using your dimensional model, write a SQL query that returns a list of jobs for each company, ordered and enumerated within each group by the posted_at date.
+
+SELECT 
+    company_name,
+    RANK() OVER (PARTITION BY c.company_id ORDER BY j.posted_at) AS job_rank,
+    j.id AS job_id,
+    j.posted_at,
+    j.state,
+    j.zip_code,
+    j.price
+FROM 
+    companies c
+INNER JOIN 
+    jobs j ON c.company_id = j.company_id
+ORDER BY 
+    c.company_name, j.posted_at;
+
+6. Discuss how you would obtain and model information (within your schema) about the duration of jobs (from posted to expired states).
+
+We would need to add ann additonal column "expired_at" to the fact table jobs. Then we would be able to calculate the duration from posted to expired:
+
+ALTER TABLE jobs ADD expired_at TIMESTAMP;
+
+7. (For Data Analyst Role) Provide a visualization showing the trend of the number of active jobs over time. Also include the company name data in this visualization. (see notebook or image in repository)
