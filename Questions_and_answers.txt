@@ -40,7 +40,7 @@ CREATE TABLE jobs (
     posted_at TIMESTAMP,
     state VARCHAR2(50),
     zip_code VARCHAR2(10),
-    price NUMBER(10, 2), -- or use DECIMAL if preferred
+    price NUMBER(10, 2),
     company_id NUMBER,
     FOREIGN KEY (zip_code) REFERENCES locations(zip_code),
     FOREIGN KEY (company_id) REFERENCES companies(company_id)
